@@ -13,16 +13,13 @@ from peft import LoraConfig, PeftModel
 from trl import SFTConfig, SFTTrainer
 import gc
 
-# Remove actions from transcript
-def remove_paranthesis(text):
-    result = re.sub(r'\(.*?\)','',text)
-    return result
+
 
 class CharacterChatBot():
 
     def __init__(self,
                  model_path,
-                 data_path="/content/data/naruto.csv",
+                 data_path="/content/data/GOT.csv",
                  huggingface_token = None
                  ):
         
@@ -185,24 +182,26 @@ class CharacterChatBot():
         gc.collect()
 
     def load_data(self):
-        naruto_transcript_df = pd.read_csv(self.data_path)
-        naruto_transcript_df = naruto_transcript_df.dropna()
-        naruto_transcript_df['line'] = naruto_transcript_df['line'].apply(remove_paranthesis)
-        naruto_transcript_df['number_of_words'] = naruto_transcript_df['line'].str.strip().str.split(" ")
-        naruto_transcript_df['number_of_words'] = naruto_transcript_df['number_of_words'].apply(lambda x: len(x))
-        naruto_transcript_df['naruto_response_flag'] = 0
-        naruto_transcript_df.loc[(naruto_transcript_df['name']=="Naruto")&(naruto_transcript_df['number_of_words']>5),'naruto_response_flag']=1
+        df = pd.read_csv(self.data_path)
+        df = df.drop(columns=["Release Date" , "Season" , "Episode" , "Episode Title" ],axis=1)
+        df['Sentence'] = df['Sentence'].astype(str)
+        df['number_of_words'] = df['Sentence'].str.strip().str.split(" ")
+        df['number_of_words'] = df['number_of_words'].apply(lambda x: len(x))
 
-        indexes_to_take = list(naruto_transcript_df[(naruto_transcript_df['naruto_response_flag']==1)&(naruto_transcript_df.index>0)].index)
+        df['tyrion_response_flag'] = 0
+        df.loc[(df['Name']=="tyrion lannister")&(df['number_of_words']>5),'tyrion_response_flag']=1
 
-        system_promt = """" Your are Naruto from the anime "Naruto". Your responses should reflect his personality and speech patterns \n"""
+        indexes_to_take = list(df[(df['tyrion_response_flag']==1)&(df.index>0)].index)
+
+        system_promt = """" Your are Tyrion Lannister from the TV Show "Game of thrones". Your responses should reflect his personality and speech patterns \n"""
+
         prompts = []
         for ind in indexes_to_take:
             prompt = system_promt
 
-            prompt += naruto_transcript_df.iloc[ind -1]['line']
+            prompt += df.iloc[ind -1]['Sentence']
             prompt += '\n'
-            prompt += naruto_transcript_df.iloc[ind]['line']
+            prompt += df.iloc[ind]['Sentence']
             prompts.append(prompt)
         
         df = pd.DataFrame({"prompt":prompts})
