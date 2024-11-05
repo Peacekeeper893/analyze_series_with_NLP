@@ -1,27 +1,23 @@
-from glob import glob 
+
 import pandas as pd
 
+# def load_subtitles_dataset(dataset_path):
+#     df = pd.read_csv(dataset_path)
+#     df['season_episode'] = (df['Season'].str.split(' ').str[1].astype(int) - 1) * 10 + df['Episode'].str.split(' ').str[1].astype(int)
+#     df_a = df.drop(['Season','Episode','Name','Release Date','Episode Title'],axis=1)
+#     df_a['Sentence'] = df_a['Sentence'].astype(str)
+#     df_a = df_a.groupby('season_episode')['Sentence'].agg(' '.join).reset_index()
+#     df_a.rename(columns={'Sentence':'Subtitles'},inplace=True)
+#     return df_a
+
+
+
+# With class
 def load_subtitles_dataset(dataset_path):
-    subtitles_paths = glob(dataset_path+'/*.ass')
-
-    scripts=[]
-    episode_num=[]
-
-    for path in subtitles_paths:
-
-        #Read Lines
-        with open(path,'r') as file:
-            lines = file.readlines()
-            lines = lines[27:]
-            lines =  [ ",".join(line.split(',')[9:])  for line in lines ]
-        
-        lines = [ line.replace('\\N',' ') for line in lines]
-        script = " ".join(lines)
-
-        episode = int(path.split('-')[-1].split('.')[0].strip())
-
-        scripts.append(script)
-        episode_num.append(episode)
-
-    df = pd.DataFrame.from_dict({"episode":episode_num, "script":scripts })
-    return df
+    df = pd.read_csv(dataset_path)
+    df['season_episode'] = (df['Season'].str.split(' ').str[1].astype(int) - 1) * 10 + df['Episode'].str.split(' ').str[1].astype(int)
+    df_a = df.drop(['Season','Episode','Release Date','Episode Title'],axis=1)
+    df_a['Sentence'] = df_a['Sentence'].astype(str)
+    df_a.rename(columns={'Sentence':'Subtitles'},inplace=True)
+    
+    return df_a
