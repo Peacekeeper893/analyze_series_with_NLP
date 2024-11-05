@@ -19,7 +19,7 @@ class CharacterChatBot():
 
     def __init__(self,
                  model_path,
-                 data_path="/content/data/GOT.csv",
+                 data_path="/content/analyze_series_with_NLP/data/GOT.csv",
                  huggingface_token = None
                  ):
         
